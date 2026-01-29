@@ -5,4 +5,4 @@
 :HL["https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg","image"]
 :HL["https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg","image"]
 :HL["https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg","image"]
-0:{"buildId":"0qwayATt-m3kDp6_W3o4A","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"terms","paramType":null,"paramKey":"terms","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+0:{"buildId":"vJsrtiw5LXvhp9hKOh6U7","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"terms","paramType":null,"paramKey":"terms","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
