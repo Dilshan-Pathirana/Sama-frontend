@@ -1,4 +1,4 @@
-:HL["/Sama-frontend/_next/static/chunks/e3b8c056f2c3217a.css","style"]
+:HL["/Sama-frontend/_next/static/chunks/0a74680cd2d1a89c.css","style"]
 :HL["/Sama-frontend/_next/static/media/797e433ab948586e-s.p.dbea232f.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/Sama-frontend/_next/static/media/caa3a2e1cccd8315-s.p.853070df.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/logo.jpg","image"]
@@ -6,4 +6,4 @@
 :HL["https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg","image"]
 :HL["https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg","image"]
 :HL["https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=2000","image"]
-0:{"buildId":"FBjI08mFbEjaUXQ5wvGs8","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+0:{"buildId":"HdhD274qQGkE47DYRgVJ8","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
