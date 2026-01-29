@@ -6,4 +6,4 @@
 :HL["https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg","image"]
 :HL["https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg","image"]
 :HL["https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=2000","image"]
-0:{"buildId":"0qwayATt-m3kDp6_W3o4A","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+0:{"buildId":"vJsrtiw5LXvhp9hKOh6U7","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
