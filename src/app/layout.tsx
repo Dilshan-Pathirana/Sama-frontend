@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: "Execute Cine Rental | Premium Cinema Equipment",
   description: "Premier film production and cinema equipment rental in Sri Lanka. Cameras, lighting, and grip for professional filmmaking.",
   icons: {
-    icon: '/logo.jpg',
+    icon: '/Sama-frontend/logo.jpg',
   },
 };
 

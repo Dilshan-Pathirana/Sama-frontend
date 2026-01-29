@@ -47,7 +47,7 @@ export const Header = () => {
                     {/* Logo */}
                     <Link href="/" className="flex items-center space-x-3 group">
                         <div className="w-10 h-10 rounded-xl overflow-hidden group-hover:scale-105 transition-transform">
-                            <img src="/logo.jpg" alt="Execute Cine Rental" className="w-full h-full object-cover" />
+                            <img src="/Sama-frontend/logo.jpg" alt="Execute Cine Rental" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-xl font-bold tracking-tight text-white">
                             Execute <span className="text-amber-500">Cine Rental</span>

@@ -18,7 +18,7 @@ export const equipment: Equipment[] = [
             'Card Slots': 'Dual SD/CFexpress Type A',
         },
         images: [
-            'https://images.unsplash.com/photo-1624823183488-295435d29005?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&q=80&w=1000',
             'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=1000',
         ],
         dailyRate: 85,
@@ -59,8 +59,8 @@ export const equipment: Equipment[] = [
             'Card Slots': 'CFexpress & SD UHS-II',
         },
         images: [
-            'https://images.unsplash.com/photo-1616423664033-63518d2c6045?auto=format&fit=crop&q=80&w=1000',
-            'https://images.unsplash.com/photo-1519638831568-d9897f54ed69?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1510127034890-ba27508e9f1c?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1495707902641-75cac588d2e9?auto=format&fit=crop&q=80&w=1000',
         ],
         dailyRate: 115,
         weeklyRate: 460,
@@ -101,8 +101,8 @@ export const equipment: Equipment[] = [
             Media: 'CFast 2.0',
         },
         images: [
-            'https://images.unsplash.com/photo-1589874838646-633945932466?auto=format&fit=crop&q=80&w=1000',
-            'https://images.unsplash.com/photo-1626244243406-8c950298a287?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1599056377759-33230be6f990?auto=format&fit=crop&q=80&w=1000',
         ],
         dailyRate: 250,
         weeklyRate: 1000,
@@ -141,8 +141,8 @@ export const equipment: Equipment[] = [
             Inputs: '2x Mini XLR',
         },
         images: [
+            'https://images.unsplash.com/photo-1543160731-007f43370335?auto=format&fit=crop&q=80&w=1000',
             'https://images.unsplash.com/photo-1534363261880-083f6217453c?auto=format&fit=crop&q=80&w=1000',
-            'https://images.unsplash.com/photo-1564466021188-1e172e027418?auto=format&fit=crop&q=80&w=1000',
         ],
         dailyRate: 95,
         weeklyRate: 380,
@@ -218,8 +218,8 @@ export const equipment: Equipment[] = [
             Speed: 'Max 94 km/h',
         },
         images: [
-            'https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&q=80&w=1000',
-            'https://images.unsplash.com/photo-1506947411487-a56738267384?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1543160731-007f43370335?auto=format&fit=crop&q=80&w=1000',
         ],
         dailyRate: 450,
         weeklyRate: 1800,
@@ -260,8 +260,8 @@ export const equipment: Equipment[] = [
             Power: 'AC or Battery (V-Mount)',
         },
         images: [
-            'https://images.unsplash.com/photo-1563396983906-b3795482a59a?auto=format&fit=crop&q=80&w=1000',
-            'https://images.unsplash.com/photo-1527011046414-4781f1f94f8c?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1574333916351-f685c709658c?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=1000',
         ],
         dailyRate: 65,
         weeklyRate: 260,
@@ -302,7 +302,7 @@ export const equipment: Equipment[] = [
         },
         images: [
             'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000',
-            'https://images.unsplash.com/photo-1524678606372-987d11df920b?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?auto=format&fit=crop&q=80&w=1000',
         ],
         dailyRate: 35,
         weeklyRate: 140,
