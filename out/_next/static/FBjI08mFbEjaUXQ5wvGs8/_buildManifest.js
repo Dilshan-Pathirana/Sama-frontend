@@ -1,7 +1,12 @@
 self.__BUILD_MANIFEST = {
   "__rewrites": {
     "afterFiles": [],
-    "beforeFiles": [],
+    "beforeFiles": [
+      {
+        "source": "/Sama-frontend//_next/:path+",
+        "destination": "/Sama-frontend/_next/:path+"
+      }
+    ],
     "fallback": []
   },
   "sortedPages": [
