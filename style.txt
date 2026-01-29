@@ -1,0 +1,3032 @@
+```App.tsx
+import React, { Component } from 'react'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom'
+import { Header } from './components/layout/Header'
+import { Footer } from './components/layout/Footer'
+import { HomePage } from './pages/HomePage'
+import { EquipmentCatalog } from './pages/EquipmentCatalog'
+import { EquipmentDetail } from './pages/EquipmentDetail'
+import { CartPage } from './pages/CartPage'
+import { CheckoutPage } from './pages/CheckoutPage'
+import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
+import { UserDashboard } from './pages/UserDashboard'
+import { AdminDashboard } from './pages/AdminDashboard'
+import { useAuth } from './hooks/useAuth'
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated) return <Navigate to="/login" />
+  return <>{children}</>
+}
+export function App() {
+  return (
+    <Router>
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col font-sans">
+        <Header />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/catalog" element={<EquipmentCatalog />} />
+            <Route path="/equipment/:id" element={<EquipmentDetail />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+
+            {/* Protected Routes */}
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <UserDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </Router>
+  )
+}
+
+```
+```components/admin/StatsCard.tsx
+import React from 'react'
+import { Card } from '../ui/Card'
+interface StatsCardProps {
+  title: string
+  value: string
+  trend?: string
+  trendUp?: boolean
+  icon: React.ReactNode
+}
+export const StatsCard = ({
+  title,
+  value,
+  trend,
+  trendUp,
+  icon,
+}: StatsCardProps) => {
+  return (
+    <Card className="p-6">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm font-medium text-slate-400 mb-1">{title}</p>
+          <h3 className="text-2xl font-bold text-white">{value}</h3>
+          {trend && (
+            <p
+              className={`text-xs font-medium mt-2 ${trendUp ? 'text-emerald-500' : 'text-rose-500'}`}
+            >
+              {trendUp ? '↑' : '↓'} {trend} vs last month
+            </p>
+          )}
+        </div>
+        <div className="p-3 bg-slate-800 rounded-lg text-amber-500">{icon}</div>
+      </div>
+    </Card>
+  )
+}
+
+```
+```components/booking/BookingCard.tsx
+import React from 'react'
+import { Calendar, Package, Clock } from 'lucide-react'
+import { Booking } from '../../types'
+import { Badge } from '../ui/Badge'
+import { Button } from '../ui/Button'
+interface BookingCardProps {
+  booking: Booking
+}
+export const BookingCard = ({ booking }: BookingCardProps) => {
+  const statusColors: Record<string, any> = {
+    pending: 'warning',
+    confirmed: 'success',
+    active: 'success',
+    completed: 'default',
+    cancelled: 'error',
+  }
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <div className="flex items-center space-x-3 mb-1">
+            <h3 className="font-semibold text-white">
+              Order #{booking.id.slice(0, 8)}
+            </h3>
+            <Badge variant={statusColors[booking.status]}>
+              {booking.status}
+            </Badge>
+          </div>
+          <p className="text-sm text-slate-400">
+            Placed on {new Date(booking.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="font-bold text-white">${booking.totalAmount}</p>
+          <p className="text-xs text-slate-500">{booking.items.length} items</p>
+        </div>
+      </div>
+
+      <div className="space-y-4 mb-6">
+        <div className="flex items-center text-sm text-slate-300">
+          <Calendar className="w-4 h-4 mr-3 text-amber-500" />
+          <span>
+            {new Date(booking.startDate).toLocaleDateString()} —{' '}
+            {new Date(booking.endDate).toLocaleDateString()}
+          </span>
+        </div>
+        <div className="flex items-start text-sm text-slate-300">
+          <Package className="w-4 h-4 mr-3 mt-1 text-amber-500" />
+          <div className="flex-1">
+            {booking.items.map((item) => (
+              <div key={item.id} className="mb-1">
+                {item.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex space-x-3 pt-4 border-t border-slate-800">
+        <Button variant="outline" size="sm" className="flex-1">
+          View Invoice
+        </Button>
+        <Button variant="primary" size="sm" className="flex-1">
+          Support
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+```
+```components/cart/CartItem.tsx
+import React from 'react'
+import { Trash2, Calendar } from 'lucide-react'
+import { CartItem as CartItemType } from '../../types'
+import { Button } from '../ui/Button'
+interface CartItemProps {
+  item: CartItemType
+  onRemove: (id: string) => void
+}
+export const CartItem = ({ item, onRemove }: CartItemProps) => {
+  return (
+    <div className="flex gap-4 p-4 bg-slate-900 border border-slate-800 rounded-xl">
+      <div className="w-24 h-24 bg-slate-800 rounded-lg overflow-hidden shrink-0">
+        <img
+          src={item.images[0]}
+          alt={item.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      <div className="flex-grow flex flex-col justify-between">
+        <div className="flex justify-between items-start">
+          <div>
+            <h4 className="font-semibold text-white">{item.name}</h4>
+            <p className="text-sm text-slate-400">{item.brand}</p>
+          </div>
+          <p className="font-bold text-amber-500">
+            ${item.dailyRate * item.days}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">
+            <Calendar className="w-3 h-3 mr-1.5" />
+            <span>{item.days} Days Rental</span>
+          </div>
+
+          <button
+            onClick={() => onRemove(item.id)}
+            className="text-slate-500 hover:text-rose-500 transition-colors p-1"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```components/cart/CartSummary.tsx
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { Button } from '../ui/Button'
+interface CartSummaryProps {
+  subtotal: number
+  deposit: number
+  tax?: number
+}
+export const CartSummary = ({
+  subtotal,
+  deposit,
+  tax = 0,
+}: CartSummaryProps) => {
+  const total = subtotal + tax
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+      <h3 className="text-lg font-semibold text-white mb-4">Order Summary</h3>
+
+      <div className="space-y-2 text-sm">
+        <div className="flex justify-between text-slate-400">
+          <span>Subtotal</span>
+          <span className="text-white">${subtotal.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-slate-400">
+          <span>Security Deposit (Refundable)</span>
+          <span className="text-white">${deposit.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-slate-400">
+          <span>Tax (Estimated)</span>
+          <span className="text-white">${tax.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-800 pt-4">
+        <div className="flex justify-between items-end mb-1">
+          <span className="text-base font-medium text-white">
+            Total Due Now
+          </span>
+          <span className="text-2xl font-bold text-amber-500">
+            ${total.toFixed(2)}
+          </span>
+        </div>
+        <p className="text-xs text-slate-500 text-right">
+          Includes refundable deposit of ${deposit}
+        </p>
+      </div>
+
+      <Link to="/checkout" className="block">
+        <Button className="w-full" size="lg">
+          Proceed to Checkout
+        </Button>
+      </Link>
+
+      <div className="flex items-center justify-center space-x-2 text-xs text-slate-500 pt-2">
+        <span>🔒 Secure Checkout</span>
+      </div>
+    </div>
+  )
+}
+
+```
+```components/equipment/AvailabilityCalendar.tsx
+import React from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+export const AvailabilityCalendar = () => {
+  // Mock calendar for visual purposes
+  const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+  const dates = Array.from(
+    {
+      length: 35,
+    },
+    (_, i) => i + 1,
+  )
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="font-semibold text-white">Availability</h3>
+        <div className="flex space-x-2">
+          <button className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="text-sm font-medium text-white pt-1">
+            October 2023
+          </span>
+          <button className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white">
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 gap-2 text-center mb-2">
+        {days.map((d) => (
+          <div key={d} className="text-xs font-medium text-slate-500">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-2">
+        {dates.map((date, i) => {
+          const isBlocked = [5, 6, 7, 15, 16].includes(date)
+          const isSelected = [20, 21, 22].includes(date)
+          return (
+            <div
+              key={i}
+              className={`
+                aspect-square flex items-center justify-center text-sm rounded-lg
+                ${date > 31 ? 'invisible' : ''}
+                ${isBlocked ? 'bg-rose-500/10 text-rose-500 line-through cursor-not-allowed' : isSelected ? 'bg-amber-500 text-slate-950 font-bold' : 'hover:bg-slate-800 text-slate-300 cursor-pointer'}
+              `}
+            >
+              {date <= 31 ? date : ''}
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="flex items-center space-x-4 mt-4 text-xs text-slate-400">
+        <div className="flex items-center">
+          <div className="w-2 h-2 rounded-full bg-amber-500 mr-2" />
+          Selected
+        </div>
+        <div className="flex items-center">
+          <div className="w-2 h-2 rounded-full bg-rose-500 mr-2" />
+          Booked
+        </div>
+        <div className="flex items-center">
+          <div className="w-2 h-2 rounded-full bg-slate-700 mr-2" />
+          Available
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```components/equipment/EquipmentCard.tsx
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { Star, Plus } from 'lucide-react'
+import { Equipment } from '../../types'
+import { Card } from '../ui/Card'
+import { Badge } from '../ui/Badge'
+import { Button } from '../ui/Button'
+interface EquipmentCardProps {
+  equipment: Equipment
+  onAddToCart?: (e: React.MouseEvent) => void
+}
+export const EquipmentCard = ({
+  equipment,
+  onAddToCart,
+}: EquipmentCardProps) => {
+  return (
+    <Link to={`/equipment/${equipment.id}`} className="group h-full">
+      <Card hover className="h-full flex flex-col bg-slate-900/50">
+        {/* Image Container */}
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-800">
+          <img
+            src={equipment.images[0]}
+            alt={equipment.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+          <div className="absolute top-3 left-3">
+            <Badge
+              variant={equipment.stock > 0 ? 'success' : 'error'}
+              className="backdrop-blur-md"
+            >
+              {equipment.stock > 0 ? 'In Stock' : 'Out of Stock'}
+            </Badge>
+          </div>
+          {equipment.condition === 'New' && (
+            <div className="absolute top-3 right-3">
+              <Badge variant="warning" className="backdrop-blur-md">
+                New
+              </Badge>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="p-5 flex flex-col flex-grow">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-amber-500 uppercase tracking-wider">
+              {equipment.category}
+            </span>
+            <div className="flex items-center text-amber-400 text-xs">
+              <Star className="w-3 h-3 fill-current mr-1" />
+              <span>{equipment.rating}</span>
+              <span className="text-slate-500 ml-1">
+                ({equipment.reviewCount})
+              </span>
+            </div>
+          </div>
+
+          <h3 className="text-lg font-semibold text-white mb-1 group-hover:text-amber-500 transition-colors line-clamp-1">
+            {equipment.name}
+          </h3>
+          <p className="text-sm text-slate-400 mb-4 line-clamp-2 flex-grow">
+            {equipment.description}
+          </p>
+
+          <div className="flex items-end justify-between mt-auto pt-4 border-t border-slate-800">
+            <div>
+              <p className="text-xs text-slate-500 mb-0.5">Daily Rate</p>
+              <p className="text-xl font-bold text-white">
+                ${equipment.dailyRate}
+              </p>
+            </div>
+
+            <Button
+              size="sm"
+              className="rounded-full w-10 h-10 p-0 flex items-center justify-center"
+              onClick={(e) => {
+                e.preventDefault()
+                onAddToCart?.(e)
+              }}
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      </Card>
+    </Link>
+  )
+}
+
+```
+```components/equipment/EquipmentGallery.tsx
+import React, { useState } from 'react'
+import { Modal } from '../ui/Modal'
+interface EquipmentGalleryProps {
+  images: string[]
+  name: string
+}
+export const EquipmentGallery = ({ images, name }: EquipmentGalleryProps) => {
+  const [selectedImage, setSelectedImage] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  return (
+    <div className="space-y-4">
+      {/* Main Image */}
+      <div
+        className="aspect-[4/3] bg-slate-800 rounded-xl overflow-hidden cursor-zoom-in relative group"
+        onClick={() => setIsModalOpen(true)}
+      >
+        <img
+          src={images[selectedImage]}
+          alt={`${name} view ${selectedImage + 1}`}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+      </div>
+
+      {/* Thumbnails */}
+      <div className="grid grid-cols-4 gap-4">
+        {images.map((img, idx) => (
+          <button
+            key={idx}
+            onClick={() => setSelectedImage(idx)}
+            className={`
+              aspect-square rounded-lg overflow-hidden border-2 transition-all
+              ${selectedImage === idx ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-transparent opacity-70 hover:opacity-100'}
+            `}
+          >
+            <img src={img} alt="" className="w-full h-full object-cover" />
+          </button>
+        ))}
+      </div>
+
+      {/* Fullscreen Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        size="xl"
+      >
+        <div className="relative aspect-video bg-slate-950 rounded-lg overflow-hidden">
+          <img
+            src={images[selectedImage]}
+            alt={name}
+            className="w-full h-full object-contain"
+          />
+        </div>
+      </Modal>
+    </div>
+  )
+}
+
+```
+```components/equipment/FilterSidebar.tsx
+import React from 'react'
+import { X } from 'lucide-react'
+import { categories } from '../../data/categories'
+import { Button } from '../ui/Button'
+interface FilterSidebarProps {
+  filters: any
+  setFilters: (filters: any) => void
+  isOpen?: boolean
+  onClose?: () => void
+}
+export const FilterSidebar = ({
+  filters,
+  setFilters,
+  isOpen,
+  onClose,
+}: FilterSidebarProps) => {
+  const handleCategoryChange = (category: string) => {
+    const current = filters.categories || []
+    const updated = current.includes(category)
+      ? current.filter((c: string) => c !== category)
+      : [...current, category]
+    setFilters({
+      ...filters,
+      categories: updated,
+    })
+  }
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters({
+      ...filters,
+      maxPrice: parseInt(e.target.value),
+    })
+  }
+  return (
+    <div
+      className={`
+      fixed inset-y-0 left-0 z-50 w-80 bg-slate-900 border-r border-slate-800 p-6 transform transition-transform duration-300 ease-in-out overflow-y-auto
+      lg:relative lg:transform-none lg:w-64 lg:border-none lg:bg-transparent lg:p-0 lg:block
+      ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+    `}
+    >
+      <div className="flex items-center justify-between mb-6 lg:hidden">
+        <h2 className="text-xl font-bold text-white">Filters</h2>
+        <button onClick={onClose} className="text-slate-400 hover:text-white">
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      <div className="space-y-8">
+        {/* Categories */}
+        <div>
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+            Categories
+          </h3>
+          <div className="space-y-2">
+            {categories.map((cat) => (
+              <label
+                key={cat.id}
+                className="flex items-center space-x-3 cursor-pointer group"
+              >
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    className="peer h-4 w-4 rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-amber-500 focus:ring-offset-slate-900"
+                    checked={filters.categories?.includes(cat.id)}
+                    onChange={() => handleCategoryChange(cat.id)}
+                  />
+                </div>
+                <span className="text-slate-400 group-hover:text-white transition-colors">
+                  {cat.name}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Price Range */}
+        <div>
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+            Max Daily Rate:{' '}
+            <span className="text-amber-500">${filters.maxPrice || 500}</span>
+          </h3>
+          <input
+            type="range"
+            min="0"
+            max="1000"
+            step="10"
+            value={filters.maxPrice || 500}
+            onChange={handlePriceChange}
+            className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+          />
+          <div className="flex justify-between text-xs text-slate-500 mt-2">
+            <span>$0</span>
+            <span>$1000+</span>
+          </div>
+        </div>
+
+        {/* Availability */}
+        <div>
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+            Availability
+          </h3>
+          <label className="flex items-center space-x-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-amber-500 focus:ring-offset-slate-900"
+              checked={filters.inStockOnly}
+              onChange={(e) =>
+                setFilters({
+                  ...filters,
+                  inStockOnly: e.target.checked,
+                })
+              }
+            />
+            <span className="text-slate-400 group-hover:text-white transition-colors">
+              In Stock Only
+            </span>
+          </label>
+        </div>
+
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() =>
+            setFilters({
+              categories: [],
+              maxPrice: 1000,
+              inStockOnly: false,
+            })
+          }
+        >
+          Clear Filters
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+```
+```components/equipment/SpecificationsTable.tsx
+import React from 'react'
+interface SpecificationsTableProps {
+  specs: Record<string, string>
+}
+export const SpecificationsTable = ({ specs }: SpecificationsTableProps) => {
+  return (
+    <div className="border border-slate-800 rounded-xl overflow-hidden">
+      <table className="w-full text-sm text-left">
+        <tbody className="divide-y divide-slate-800">
+          {Object.entries(specs).map(([key, value], index) => (
+            <tr
+              key={key}
+              className={index % 2 === 0 ? 'bg-slate-900/50' : 'bg-transparent'}
+            >
+              <td className="px-6 py-4 font-medium text-slate-400 w-1/3">
+                {key}
+              </td>
+              <td className="px-6 py-4 text-white">{value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+```
+```components/layout/Footer.tsx
+import React from 'react'
+import {
+  Camera,
+  Instagram,
+  Twitter,
+  Facebook,
+  Youtube,
+  Mail,
+  MapPin,
+  Phone,
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
+export const Footer = () => {
+  return (
+    <footer className="bg-slate-950 border-t border-slate-900 pt-16 pb-8">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          {/* Brand */}
+          <div className="space-y-4">
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-slate-950">
+                <Camera className="w-5 h-5" />
+              </div>
+              <span className="text-xl font-bold text-white">
+                CamRent <span className="text-amber-500">Pro</span>
+              </span>
+            </Link>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Premium camera equipment rental for professional photographers and
+              filmmakers. Quality gear, flexible terms, and expert support.
+            </p>
+            <div className="flex space-x-4">
+              {[Instagram, Twitter, Facebook, Youtube].map((Icon, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  className="text-slate-500 hover:text-amber-500 transition-colors"
+                >
+                  <Icon className="w-5 h-5" />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Rental</h3>
+            <ul className="space-y-2">
+              {[
+                'Cameras',
+                'Lenses',
+                'Lighting',
+                'Audio',
+                'Drones',
+                'Accessories',
+              ].map((item) => (
+                <li key={item}>
+                  <Link
+                    to="/catalog"
+                    className="text-slate-400 hover:text-amber-500 text-sm transition-colors"
+                  >
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Company</h3>
+            <ul className="space-y-2">
+              {[
+                'About Us',
+                'How it Works',
+                'Insurance',
+                'Terms & Conditions',
+                'Privacy Policy',
+              ].map((item) => (
+                <li key={item}>
+                  <Link
+                    to="#"
+                    className="text-slate-400 hover:text-amber-500 text-sm transition-colors"
+                  >
+                    {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Contact</h3>
+            <ul className="space-y-4">
+              <li className="flex items-start space-x-3 text-slate-400 text-sm">
+                <MapPin className="w-5 h-5 text-amber-500 shrink-0" />
+                <span>
+                  123 Studio Blvd, Creative District
+                  <br />
+                  Los Angeles, CA 90012
+                </span>
+              </li>
+              <li className="flex items-center space-x-3 text-slate-400 text-sm">
+                <Phone className="w-5 h-5 text-amber-500 shrink-0" />
+                <span>+1 (555) 123-4567</span>
+              </li>
+              <li className="flex items-center space-x-3 text-slate-400 text-sm">
+                <Mail className="w-5 h-5 text-amber-500 shrink-0" />
+                <span>support@camrentpro.com</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-slate-500 text-sm">
+            © {new Date().getFullYear()} CamRent Pro. All rights reserved.
+          </p>
+          <div className="flex space-x-6">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
+              alt="Visa"
+              className="h-6 opacity-50 grayscale hover:grayscale-0 transition-all"
+            />
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+              alt="Mastercard"
+              className="h-6 opacity-50 grayscale hover:grayscale-0 transition-all"
+            />
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
+              alt="PayPal"
+              className="h-6 opacity-50 grayscale hover:grayscale-0 transition-all"
+            />
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+```
+```components/layout/Header.tsx
+import React, { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { Camera, Search, ShoppingCart, User, Menu, X } from 'lucide-react'
+import { Button } from '../ui/Button'
+import { useCart } from '../../hooks/useCart'
+import { useAuth } from '../../hooks/useAuth'
+export const Header = () => {
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { count } = useCart()
+  const { user, isAuthenticated } = useAuth()
+  const location = useLocation()
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+  const navLinks = [
+    {
+      name: 'Equipment',
+      path: '/catalog',
+    },
+    {
+      name: 'How it Works',
+      path: '/#how-it-works',
+    },
+    {
+      name: 'Support',
+      path: '/support',
+    },
+  ]
+  return (
+    <header
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${isScrolled ? 'bg-slate-950/80 backdrop-blur-md border-b border-white/5 py-3' : 'bg-transparent py-5'}`}
+    >
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2 group">
+            <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-slate-950 group-hover:scale-105 transition-transform">
+              <Camera className="w-6 h-6" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white">
+              CamRent <span className="text-amber-500">Pro</span>
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Actions */}
+          <div className="hidden md:flex items-center space-x-4">
+            <button className="p-2 text-slate-300 hover:text-white transition-colors">
+              <Search className="w-5 h-5" />
+            </button>
+
+            <Link
+              to="/cart"
+              className="relative p-2 text-slate-300 hover:text-white transition-colors"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {count > 0 && (
+                <span className="absolute top-0 right-0 w-4 h-4 bg-amber-500 text-slate-950 text-[10px] font-bold flex items-center justify-center rounded-full">
+                  {count}
+                </span>
+              )}
+            </Link>
+
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm" className="space-x-2">
+                  <div className="w-6 h-6 rounded-full bg-slate-800 overflow-hidden">
+                    {user?.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-4 h-4 m-1" />
+                    )}
+                  </div>
+                  <span>{user?.name.split(' ')[0]}</span>
+                </Button>
+              </Link>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">
+                    Log in
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button variant="primary" size="sm">
+                    Sign up
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 text-slate-300"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X /> : <Menu />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 bg-slate-900 border-b border-slate-800 p-4 animate-in slide-in-from-top-5">
+          <nav className="flex flex-col space-y-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className="text-base font-medium text-slate-300 hover:text-white"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.name}
+              </Link>
+            ))}
+            <hr className="border-slate-800" />
+            <Link
+              to="/cart"
+              className="flex items-center justify-between text-slate-300"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <span>Cart</span>
+              <span className="bg-amber-500 text-slate-950 text-xs font-bold px-2 py-0.5 rounded-full">
+                {count}
+              </span>
+            </Link>
+            {isAuthenticated ? (
+              <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button className="w-full">Dashboard</Button>
+              </Link>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="secondary" className="w-full">
+                    Log in
+                  </Button>
+                </Link>
+                <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="primary" className="w-full">
+                    Sign up
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
+    </header>
+  )
+}
+
+```
+```components/ui/Badge.tsx
+import React from 'react'
+interface BadgeProps {
+  children: React.ReactNode
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'outline'
+  className?: string
+}
+export const Badge = ({
+  children,
+  variant = 'default',
+  className = '',
+}: BadgeProps) => {
+  const variants = {
+    default: 'bg-slate-800 text-slate-300',
+    success: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20',
+    warning: 'bg-amber-500/10 text-amber-500 border border-amber-500/20',
+    error: 'bg-rose-500/10 text-rose-500 border border-rose-500/20',
+    outline: 'border border-slate-700 text-slate-400',
+  }
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[variant]} ${className}`}
+    >
+      {children}
+    </span>
+  )
+}
+
+```
+```components/ui/Button.tsx
+import React, { forwardRef } from 'react'
+import { Loader2 } from 'lucide-react'
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline'
+  size?: 'sm' | 'md' | 'lg'
+  isLoading?: boolean
+  leftIcon?: React.ReactNode
+  rightIcon?: React.ReactNode
+}
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className = '',
+      variant = 'primary',
+      size = 'md',
+      isLoading,
+      leftIcon,
+      rightIcon,
+      children,
+      disabled,
+      ...props
+    },
+    ref,
+  ) => {
+    const baseStyles =
+      'inline-flex items-center justify-center rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed'
+    const variants = {
+      primary:
+        'bg-amber-500 text-slate-950 hover:bg-amber-400 focus:ring-amber-500',
+      secondary:
+        'bg-slate-800 text-white hover:bg-slate-700 focus:ring-slate-500',
+      ghost:
+        'text-slate-300 hover:text-white hover:bg-slate-800/50 focus:ring-slate-500',
+      danger: 'bg-rose-500 text-white hover:bg-rose-600 focus:ring-rose-500',
+      outline:
+        'border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white focus:ring-slate-500',
+    }
+    const sizes = {
+      sm: 'h-9 px-3 text-sm',
+      md: 'h-11 px-6 text-base',
+      lg: 'h-14 px-8 text-lg',
+    }
+    return (
+      <button
+        ref={ref}
+        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+        disabled={disabled || isLoading}
+        {...props}
+      >
+        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {!isLoading && leftIcon && <span className="mr-2">{leftIcon}</span>}
+        {children}
+        {!isLoading && rightIcon && <span className="ml-2">{rightIcon}</span>}
+      </button>
+    )
+  },
+)
+Button.displayName = 'Button'
+
+```
+```components/ui/Card.tsx
+import React, { forwardRef } from 'react'
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  hover?: boolean
+}
+export const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ className = '', hover = false, children, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={`
+          bg-slate-900 border border-slate-800 rounded-xl overflow-hidden
+          ${hover ? 'hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300' : ''}
+          ${className}
+        `}
+        {...props}
+      >
+        {children}
+      </div>
+    )
+  },
+)
+Card.displayName = 'Card'
+
+```
+```components/ui/Input.tsx
+import React, { forwardRef } from 'react'
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  error?: string
+  icon?: React.ReactNode
+}
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ className = '', label, error, icon, ...props }, ref) => {
+    return (
+      <div className="w-full">
+        {label && (
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            {label}
+          </label>
+        )}
+        <div className="relative">
+          {icon && (
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              {icon}
+            </div>
+          )}
+          <input
+            ref={ref}
+            className={`
+              w-full bg-slate-900 border border-slate-700 rounded-lg 
+              ${icon ? 'pl-10' : 'pl-4'} pr-4 py-2.5
+              text-white placeholder-slate-500
+              focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition-all duration-200
+              ${error ? 'border-rose-500 focus:ring-rose-500' : ''}
+              ${className}
+            `}
+            {...props}
+          />
+        </div>
+        {error && <p className="mt-1 text-sm text-rose-500">{error}</p>}
+      </div>
+    )
+  },
+)
+Input.displayName = 'Input'
+
+```
+```components/ui/Modal.tsx
+import React, { useEffect } from 'react'
+import { X } from 'lucide-react'
+import { createPortal } from 'react-dom'
+interface ModalProps {
+  isOpen: boolean
+  onClose: () => void
+  title?: string
+  children: React.ReactNode
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+}
+export const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = 'md',
+}: ModalProps) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
+  if (!isOpen) return null
+  const sizes = {
+    sm: 'max-w-md',
+    md: 'max-w-lg',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
+  }
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div
+        className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
+      <div
+        className={`relative w-full ${sizes[size]} bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl transform transition-all`}
+      >
+        <div className="flex items-center justify-between p-6 border-b border-slate-800">
+          {title && (
+            <h3 className="text-xl font-semibold text-white">{title}</h3>
+          )}
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        <div className="p-6">{children}</div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+```
+```data/categories.ts
+import { Camera, Video, Zap, Mic, Plane, Package } from 'lucide-react'
+import { Category } from '../types'
+
+export const categories: {
+  id: Category
+  name: string
+  icon: any
+  description: string
+}[] = [
+  {
+    id: 'Photography',
+    name: 'Photography',
+    icon: Camera,
+    description: 'Professional DSLR and Mirrorless cameras for stills.',
+  },
+  {
+    id: 'Video',
+    name: 'Video Production',
+    icon: Video,
+    description: 'Cinema cameras and camcorders for high-end production.',
+  },
+  {
+    id: 'Lighting',
+    name: 'Lighting',
+    icon: Zap,
+    description: 'Studio strobes, continuous lights, and modifiers.',
+  },
+  {
+    id: 'Audio',
+    name: 'Audio',
+    icon: Mic,
+    description: 'Microphones, recorders, and mixers for crystal clear sound.',
+  },
+  {
+    id: 'Drones',
+    name: 'Drones & Aerial',
+    icon: Plane,
+    description: 'Professional drones for aerial cinematography.',
+  },
+  {
+    id: 'Accessories',
+    name: 'Accessories',
+    icon: Package,
+    description: 'Tripods, gimbals, batteries, and media cards.',
+  },
+]
+
+```
+```data/equipment.ts
+import { Equipment } from '../types'
+
+export const equipment: Equipment[] = [
+  {
+    id: 'cam-001',
+    name: 'Sony Alpha a7 IV',
+    brand: 'Sony',
+    model: 'ILCE-7M4',
+    category: 'Photography',
+    description:
+      'An all-arounder that pushes beyond basic, the Sony a7 IV does double duty with strong stills and video performance. An advanced hybrid mirrorless camera, the a7 IV has the resolution and AF performance that appeals to photographers along with robust 4K 60p video recording for filmmakers and content creators.',
+    specs: {
+      Sensor: '33MP Full-Frame Exmor R CMOS',
+      Processor: 'BIONZ XR Image Processor',
+      Video: '4K 60p 10-Bit 4:2:2',
+      'ISO Range': '100-51200',
+      Stabilization: '5-Axis SteadyShot',
+      'Card Slots': 'Dual SD/CFexpress Type A',
+    },
+    images: [
+      'https://images.unsplash.com/photo-1624823183488-295435d29005?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=1000',
+    ],
+    dailyRate: 85,
+    weeklyRate: 340,
+    monthlyRate: 1020,
+    deposit: 1500,
+    condition: 'Excellent',
+    rating: 4.8,
+    reviewCount: 124,
+    stock: 5,
+    features: [
+      'Real-time Eye AF',
+      'S-Cinetone',
+      'Vari-angle LCD',
+      'Weather Sealed',
+    ],
+    includedItems: [
+      'Body Cap',
+      'NP-FZ100 Battery',
+      'Battery Charger',
+      'Shoulder Strap',
+    ],
+  },
+  {
+    id: 'cam-002',
+    name: 'Canon EOS R5',
+    brand: 'Canon',
+    model: 'EOS R5',
+    category: 'Photography',
+    description:
+      'For the professional image-maker who needs resolution, speed, and video capabilities, there is the Canon EOS R5. Setting a new standard for versatility, this full-frame mirrorless camera features a newly developed 45MP CMOS sensor, which offers 8K raw video recording, 12 fps continuous shooting with a mechanical shutter, and is the first EOS camera to feature 5-axis sensor-shift image stabilization.',
+    specs: {
+      Sensor: '45MP Full-Frame CMOS',
+      Processor: 'DIGIC X Image Processor',
+      Video: '8K30 Raw and 4K120 10-Bit Internal Video',
+      'ISO Range': '100-51200',
+      Stabilization: 'Sensor-Shift 5-Axis',
+      'Card Slots': 'CFexpress & SD UHS-II',
+    },
+    images: [
+      'https://images.unsplash.com/photo-1616423664033-63518d2c6045?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1519638831568-d9897f54ed69?auto=format&fit=crop&q=80&w=1000',
+    ],
+    dailyRate: 115,
+    weeklyRate: 460,
+    monthlyRate: 1380,
+    deposit: 2000,
+    condition: 'Good',
+    rating: 4.9,
+    reviewCount: 89,
+    stock: 3,
+    features: [
+      '8K Raw Video',
+      'Dual Pixel CMOS AF II',
+      'Subject Tracking',
+      'OLED EVF',
+    ],
+    includedItems: [
+      'Body Cap',
+      'LP-E6NH Battery',
+      'Battery Charger',
+      'Strap',
+      'Cable Protector',
+    ],
+  },
+  {
+    id: 'vid-001',
+    name: 'RED KOMODO 6K',
+    brand: 'RED',
+    model: 'Komodo 6K',
+    category: 'Video',
+    description:
+      "The RED KOMODO 6K is a compact cinema camera that features RED's unparalleled image quality, color science, and sensor technology in a portable form factor so users can take it anywhere and adapt it to any shooting scenario.",
+    specs: {
+      Sensor: '19.9MP Super 35mm Global Shutter CMOS',
+      'Dynamic Range': '16+ Stops',
+      Resolution: '6K at 40 fps, 4K at 60 fps',
+      Mount: 'Canon RF',
+      Recording: 'REDCODE RAW',
+      Media: 'CFast 2.0',
+    },
+    images: [
+      'https://images.unsplash.com/photo-1589874838646-633945932466?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1626244243406-8c950298a287?auto=format&fit=crop&q=80&w=1000',
+    ],
+    dailyRate: 250,
+    weeklyRate: 1000,
+    monthlyRate: 3000,
+    deposit: 4000,
+    condition: 'Excellent',
+    rating: 5.0,
+    reviewCount: 42,
+    stock: 2,
+    features: [
+      'Global Shutter',
+      'Compact Form Factor',
+      'Wireless Control',
+      'Phase Detect AF',
+    ],
+    includedItems: [
+      'AC Power Adaptor',
+      'Mini World Travel Adaptor Kit',
+      'RF to EF Adapter',
+    ],
+  },
+  {
+    id: 'vid-002',
+    name: 'Blackmagic Pocket 6K Pro',
+    brand: 'Blackmagic Design',
+    model: 'BMPCC 6K Pro',
+    category: 'Video',
+    description:
+      'To top off their previous achievement with the Pocket Cinema Camera 6K, Blackmagic Design adds an even more full-featured, compact Super35 camera to their cine-style line with the Pocket Cinema Camera 6K Pro.',
+    specs: {
+      Sensor: 'Super 35 HDR Sensor',
+      'ND Filters': 'Built-In 2, 4, 6 Stop ND',
+      ISO: 'Dual Native 400 & 3200',
+      Mount: 'Canon EF',
+      Screen: 'Tiltable 1500 nit LCD',
+      Inputs: '2x Mini XLR',
+    },
+    images: [
+      'https://images.unsplash.com/photo-1534363261880-083f6217453c?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1564466021188-1e172e027418?auto=format&fit=crop&q=80&w=1000',
+    ],
+    dailyRate: 95,
+    weeklyRate: 380,
+    monthlyRate: 1140,
+    deposit: 1200,
+    condition: 'Good',
+    rating: 4.7,
+    reviewCount: 156,
+    stock: 6,
+    features: [
+      'Gen 5 Color Science',
+      'ProRes & BRAW',
+      'Timecode Generator',
+      'Professional Audio',
+    ],
+    includedItems: [
+      'Lens Port Cap',
+      'Camera Strap',
+      'Power Supply',
+      'NP-F570 Battery',
+    ],
+  },
+  {
+    id: 'lens-001',
+    name: 'Sony FE 24-70mm f/2.8 GM II',
+    brand: 'Sony',
+    model: 'SEL2470GM2',
+    category: 'Accessories',
+    description:
+      'A refined take on the fast standard zoom, the Sony FE 24-70mm f/2.8 GM II is not only smaller and lighter than the previous generation, it also features a variety of optical, focusing, and handling upgrades.',
+    specs: {
+      'Focal Length': '24-70mm',
+      Aperture: 'f/2.8 to f/22',
+      Mount: 'Sony E',
+      Format: 'Full-Frame',
+      Focus: 'Autofocus',
+      'Filter Size': '82mm',
+    },
+    images: [
+      'https://images.unsplash.com/photo-1617005082133-548c4dd27f35?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1616423664033-63518d2c6045?auto=format&fit=crop&q=80&w=1000',
+    ],
+    dailyRate: 45,
+    weeklyRate: 180,
+    monthlyRate: 540,
+    deposit: 1000,
+    condition: 'New',
+    rating: 4.9,
+    reviewCount: 34,
+    stock: 8,
+    features: [
+      'Nano AR Coating II',
+      'Four XD Linear AF Motors',
+      'De-Clickable Aperture Ring',
+      'Dust & Moisture Resistant',
+    ],
+    includedItems: ['Front Cap', 'Rear Cap', 'Lens Hood', 'Lens Case'],
+  },
+  {
+    id: 'drone-001',
+    name: 'DJI Inspire 3',
+    brand: 'DJI',
+    model: 'Inspire 3',
+    category: 'Drones',
+    description:
+      'The DJI Inspire 3 is a full-frame 8K cinema drone that masters the unheard-of. It features a sleek, integrated design, a 1/1.8-inch ultra-wide night-vision FPV camera, and the O3 Pro video transmission and control system.',
+    specs: {
+      Camera: 'X9-8K Air Gimbal Camera',
+      Resolution: '8K 75fps ProRes RAW',
+      'Flight Time': 'Max 28 Minutes',
+      Transmission: 'O3 Pro Video Transmission',
+      Sensing: 'Omnidirectional Sensing',
+      Speed: 'Max 94 km/h',
+    },
+    images: [
+      'https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1506947411487-a56738267384?auto=format&fit=crop&q=80&w=1000',
+    ],
+    dailyRate: 450,
+    weeklyRate: 1800,
+    monthlyRate: 5400,
+    deposit: 8000,
+    condition: 'Excellent',
+    rating: 5.0,
+    reviewCount: 12,
+    stock: 1,
+    features: [
+      'RTK Positioning',
+      'Waypoints Pro',
+      'Spotlight Pro',
+      'Dual Control Capable',
+    ],
+    includedItems: [
+      'RC Plus Remote',
+      '6x TB51 Batteries',
+      'Charging Hub',
+      '1TB PROSSD',
+      'Carrying Case',
+    ],
+  },
+  {
+    id: 'light-001',
+    name: 'Aputure LS 600d Pro',
+    brand: 'Aputure',
+    model: 'LS 600d Pro',
+    category: 'Lighting',
+    description:
+      'The Light Storm 600d Pro is the latest flagship light from Aputure. Featuring a 600W COB LED output, the 600d Pro is one of the brightest point source LEDs on the market.',
+    specs: {
+      Output: '600W Daylight Balanced',
+      'CRI/TLCI': '96+/96+',
+      Mount: 'Bowens Mount',
+      Weatherproofing: 'Dust & Light Rain Resistant',
+      Control: 'Sidus Link App, DMX',
+      Power: 'AC or Battery (V-Mount)',
+    },
+    images: [
+      'https://images.unsplash.com/photo-1563396983906-b3795482a59a?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1527011046414-4781f1f94f8c?auto=format&fit=crop&q=80&w=1000',
+    ],
+    dailyRate: 65,
+    weeklyRate: 260,
+    monthlyRate: 780,
+    deposit: 800,
+    condition: 'Good',
+    rating: 4.8,
+    reviewCount: 56,
+    stock: 4,
+    features: [
+      'Built-in Lighting FX',
+      'Stepless Dimming',
+      'Advanced Cooling',
+      'Wireless Control',
+    ],
+    includedItems: [
+      'Control Box',
+      'Hyper Reflector',
+      'Weatherproof Head Cable',
+      'Rolling Case',
+    ],
+  },
+  {
+    id: 'audio-001',
+    name: 'Sennheiser MKH 416',
+    brand: 'Sennheiser',
+    model: 'MKH 416-P48U3',
+    category: 'Audio',
+    description:
+      'The Sennheiser MKH 416 is a short gun interference tube microphone. Its excellent directivity and compact design, high consonant articulation and feedback rejection make the MKH 416 a superb all-round microphone for film, radio and television.',
+    specs: {
+      Pattern: 'Supercardioid/Lobar',
+      Frequency: '40Hz to 20kHz',
+      Power: '48V Phantom',
+      Sensitivity: '-32 dBV/Pa',
+      'Max SPL': '130 dB',
+      Length: '250mm',
+    },
+    images: [
+      'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=1000',
+      'https://images.unsplash.com/photo-1524678606372-987d11df920b?auto=format&fit=crop&q=80&w=1000',
+    ],
+    dailyRate: 35,
+    weeklyRate: 140,
+    monthlyRate: 420,
+    deposit: 500,
+    condition: 'Excellent',
+    rating: 4.9,
+    reviewCount: 78,
+    stock: 6,
+    features: [
+      'RF Condenser Design',
+      'Low Self-Noise',
+      'Rugged Metal Body',
+      'Humidity Resistant',
+    ],
+    includedItems: ['Microphone Clip', 'Windscreen', 'Case'],
+  },
+]
+
+```
+```hooks/useAuth.ts
+import { useState, useEffect } from 'react'
+import { User } from '../types'
+
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('camrent_user')
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser)
+        setUser(parsed)
+        setIsAuthenticated(true)
+      } catch (e) {
+        console.error('Failed to parse user', e)
+      }
+    }
+  }, [])
+
+  const login = (email: string) => {
+    // Mock login
+    const mockUser: User = {
+      id: 'u-123',
+      name: 'Alex Photographer',
+      email,
+      role: email.includes('admin') ? 'admin' : 'user',
+      avatar:
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+    }
+
+    setUser(mockUser)
+    setIsAuthenticated(true)
+    localStorage.setItem('camrent_user', JSON.stringify(mockUser))
+  }
+
+  const logout = () => {
+    setUser(null)
+    setIsAuthenticated(false)
+    localStorage.removeItem('camrent_user')
+  }
+
+  const register = (name: string, email: string) => {
+    const mockUser: User = {
+      id: `u-${Math.random().toString(36).substr(2, 9)}`,
+      name,
+      email,
+      role: 'user',
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f59e0b&color=fff`,
+    }
+
+    setUser(mockUser)
+    setIsAuthenticated(true)
+    localStorage.setItem('camrent_user', JSON.stringify(mockUser))
+  }
+
+  return {
+    user,
+    isAuthenticated,
+    login,
+    logout,
+    register,
+  }
+}
+
+```
+```hooks/useCart.ts
+import { useState, useEffect } from 'react'
+import { CartItem, Equipment } from '../types'
+
+export function useCart() {
+  const [items, setItems] = useState<CartItem[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem('camrent_cart')
+    if (savedCart) {
+      try {
+        setItems(JSON.parse(savedCart))
+      } catch (e) {
+        console.error('Failed to parse cart', e)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('camrent_cart', JSON.stringify(items))
+  }, [items])
+
+  const addItem = (equipment: Equipment, startDate: Date, endDate: Date) => {
+    const days = Math.max(
+      1,
+      Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+      ),
+    )
+
+    const newItem: CartItem = {
+      ...equipment,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      days,
+    }
+
+    setItems((prev) => [...prev, newItem])
+    setIsOpen(true)
+  }
+
+  const removeItem = (id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id))
+  }
+
+  const clearCart = () => {
+    setItems([])
+  }
+
+  const calculateTotal = () => {
+    return items.reduce((total, item) => {
+      // Simple logic: if days >= 30 use monthly, if >= 7 use weekly, else daily
+      let rate = item.dailyRate
+      if (item.days >= 30) rate = item.monthlyRate / 30
+      else if (item.days >= 7) rate = item.weeklyRate / 7
+
+      return total + rate * item.days
+    }, 0)
+  }
+
+  const calculateDeposit = () => {
+    return items.reduce((total, item) => total + item.deposit, 0)
+  }
+
+  return {
+    items,
+    isOpen,
+    setIsOpen,
+    addItem,
+    removeItem,
+    clearCart,
+    calculateTotal,
+    calculateDeposit,
+    count: items.length,
+  }
+}
+
+```
+```index.css
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #020617; /* slate-950 */
+  --bg-secondary: #0f172a; /* slate-900 */
+  --bg-card: #1e293b; /* slate-800 */
+  
+  --accent: #f59e0b; /* amber-500 */
+  --accent-hover: #fbbf24; /* amber-400 */
+  
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1; /* slate-300 */
+  --text-muted: #94a3b8; /* slate-400 */
+  
+  --success: #10b981; /* emerald-500 */
+  --warning: #f59e0b; /* amber-500 */
+  --error: #f43f5e; /* rose-500 */
+}
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-white antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-950;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-800 rounded-full hover:bg-slate-700 transition-colors;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .glass {
+    @apply bg-slate-950/80 backdrop-blur-md border-b border-white/5;
+  }
+}
+
+```
+```index.tsx
+import './index.css'
+import React from "react";
+import { render } from "react-dom";
+import { App } from "./App";
+
+render(<App />, document.getElementById("root"));
+
+```
+```pages/AdminDashboard.tsx
+import React from 'react'
+import { DollarSign, Package, Users, AlertTriangle } from 'lucide-react'
+import { StatsCard } from '../components/admin/StatsCard'
+export const AdminDashboard = () => {
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4 md:px-6">
+      <div className="container mx-auto">
+        <h1 className="text-3xl font-bold text-white mb-8">Admin Overview</h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatsCard
+            title="Total Revenue"
+            value="$12,450"
+            trend="12%"
+            trendUp={true}
+            icon={<DollarSign className="w-6 h-6" />}
+          />
+          <StatsCard
+            title="Active Rentals"
+            value="24"
+            trend="4%"
+            trendUp={true}
+            icon={<Package className="w-6 h-6" />}
+          />
+          <StatsCard
+            title="Total Users"
+            value="1,203"
+            trend="8%"
+            trendUp={true}
+            icon={<Users className="w-6 h-6" />}
+          />
+          <StatsCard
+            title="Low Stock Alerts"
+            value="3"
+            trend="2"
+            trendUp={false}
+            icon={<AlertTriangle className="w-6 h-6" />}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Recent Bookings
+            </h3>
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
+                >
+                  <div>
+                    <p className="text-white font-medium">Order #{1000 + i}</p>
+                    <p className="text-xs text-slate-500">John Doe • 3 items</p>
+                  </div>
+                  <span className="px-2 py-1 rounded text-xs font-medium bg-emerald-500/10 text-emerald-500">
+                    Active
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Inventory Status
+            </h3>
+            <div className="space-y-4">
+              {[
+                {
+                  name: 'Sony A7 IV',
+                  stock: 2,
+                  total: 5,
+                },
+                {
+                  name: 'Canon R5',
+                  stock: 0,
+                  total: 3,
+                },
+                {
+                  name: 'RED Komodo',
+                  stock: 1,
+                  total: 2,
+                },
+              ].map((item, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-300">{item.name}</span>
+                    <span
+                      className={
+                        item.stock === 0 ? 'text-rose-500' : 'text-slate-400'
+                      }
+                    >
+                      {item.stock} / {item.total} Available
+                    </span>
+                  </div>
+                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${item.stock === 0 ? 'bg-rose-500' : 'bg-amber-500'}`}
+                      style={{
+                        width: `${(item.stock / item.total) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```pages/CartPage.tsx
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft, ShoppingBag } from 'lucide-react'
+import { useCart } from '../hooks/useCart'
+import { CartItem } from '../components/cart/CartItem'
+import { CartSummary } from '../components/cart/CartSummary'
+import { Button } from '../components/ui/Button'
+export const CartPage = () => {
+  const { items, removeItem, calculateTotal, calculateDeposit } = useCart()
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen pt-24 pb-12 px-4 flex flex-col items-center justify-center text-center">
+        <div className="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center mb-6">
+          <ShoppingBag className="w-10 h-10 text-slate-500" />
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-2">
+          Your cart is empty
+        </h1>
+        <p className="text-slate-400 mb-8">
+          Looks like you haven't added any gear yet.
+        </p>
+        <Link to="/catalog">
+          <Button>Browse Equipment</Button>
+        </Link>
+      </div>
+    )
+  }
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4 md:px-6">
+      <div className="container mx-auto">
+        <h1 className="text-3xl font-bold text-white mb-8">Shopping Cart</h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="lg:col-span-2 space-y-4">
+            {items.map((item) => (
+              <CartItem key={item.id} item={item} onRemove={removeItem} />
+            ))}
+
+            <Link
+              to="/catalog"
+              className="inline-flex items-center text-amber-500 hover:text-amber-400 mt-6 font-medium"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Continue Shopping
+            </Link>
+          </div>
+
+          <div>
+            <CartSummary
+              subtotal={calculateTotal()}
+              deposit={calculateDeposit()}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```pages/CheckoutPage.tsx
+import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { CheckCircle } from 'lucide-react'
+import { Input } from '../components/ui/Input'
+import { Button } from '../components/ui/Button'
+import { useCart } from '../hooks/useCart'
+export const CheckoutPage = () => {
+  const { items, calculateTotal } = useCart()
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false)
+      setIsSuccess(true)
+    }, 2000)
+  }
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen pt-24 pb-12 px-4 flex flex-col items-center justify-center text-center">
+        <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 text-emerald-500">
+          <CheckCircle className="w-10 h-10" />
+        </div>
+        <h1 className="text-3xl font-bold text-white mb-2">Order Confirmed!</h1>
+        <p className="text-slate-400 mb-8 max-w-md">
+          Thank you for your order. We've sent a confirmation email with your
+          rental agreement and pickup details.
+        </p>
+        <div className="flex space-x-4">
+          <Link to="/dashboard">
+            <Button variant="outline">View Order</Button>
+          </Link>
+          <Link to="/">
+            <Button>Back Home</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4 md:px-6">
+      <div className="container mx-auto max-w-6xl">
+        <h1 className="text-3xl font-bold text-white mb-8">Checkout</h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Form */}
+          <div>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <section>
+                <h2 className="text-xl font-semibold text-white mb-4">
+                  Contact Information
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input label="First Name" placeholder="John" required />
+                  <Input label="Last Name" placeholder="Doe" required />
+                  <Input
+                    label="Email"
+                    type="email"
+                    placeholder="john@example.com"
+                    className="md:col-span-2"
+                    required
+                  />
+                  <Input
+                    label="Phone"
+                    type="tel"
+                    placeholder="+1 (555) 000-0000"
+                    className="md:col-span-2"
+                    required
+                  />
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-white mb-4">
+                  Shipping Address
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="Street Address"
+                    placeholder="123 Studio Blvd"
+                    className="md:col-span-2"
+                    required
+                  />
+                  <Input label="City" placeholder="Los Angeles" required />
+                  <Input label="State" placeholder="CA" required />
+                  <Input label="ZIP Code" placeholder="90012" required />
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-white mb-4">
+                  Payment Details
+                </h2>
+                <div className="p-4 border border-slate-800 rounded-xl bg-slate-900/50 text-slate-400 text-sm mb-4">
+                  This is a demo. No real payment will be processed.
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  <Input
+                    label="Card Number"
+                    placeholder="0000 0000 0000 0000"
+                    required
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input label="Expiry" placeholder="MM/YY" required />
+                    <Input label="CVC" placeholder="123" required />
+                  </div>
+                </div>
+              </section>
+
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                isLoading={loading}
+              >
+                Place Order (${calculateTotal().toFixed(2)})
+              </Button>
+            </form>
+          </div>
+
+          {/* Summary */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 h-fit">
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Order Summary
+            </h3>
+            <div className="space-y-4 mb-6">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex justify-between items-start text-sm"
+                >
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-slate-800 rounded overflow-hidden mr-3">
+                      <img
+                        src={item.images[0]}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{item.name}</p>
+                      <p className="text-slate-500">{item.days} days</p>
+                    </div>
+                  </div>
+                  <span className="text-white font-medium">
+                    ${(item.dailyRate * item.days).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-slate-800 pt-4 space-y-2">
+              <div className="flex justify-between text-slate-400">
+                <span>Subtotal</span>
+                <span>${calculateTotal().toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-white font-bold text-lg pt-2">
+                <span>Total</span>
+                <span className="text-amber-500">
+                  ${calculateTotal().toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```pages/EquipmentCatalog.tsx
+import React, { useMemo, useState } from 'react'
+import { Filter, Search } from 'lucide-react'
+import { EquipmentCard } from '../components/equipment/EquipmentCard'
+import { FilterSidebar } from '../components/equipment/FilterSidebar'
+import { Input } from '../components/ui/Input'
+import { Button } from '../components/ui/Button'
+import { equipment } from '../data/equipment'
+export const EquipmentCatalog = () => {
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filters, setFilters] = useState({
+    categories: [],
+    maxPrice: 1000,
+    inStockOnly: false,
+  })
+  const filteredEquipment = useMemo(() => {
+    return equipment.filter((item) => {
+      // Search
+      if (
+        searchQuery &&
+        !item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+        return false
+      // Categories
+      if (
+        filters.categories.length > 0 &&
+        !filters.categories.includes(item.category as never)
+      )
+        return false
+      // Price
+      if (item.dailyRate > filters.maxPrice) return false
+      // Stock
+      if (filters.inStockOnly && item.stock === 0) return false
+      return true
+    })
+  }, [searchQuery, filters])
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4 md:px-6">
+      <div className="container mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Equipment Catalog
+            </h1>
+            <p className="text-slate-400">
+              Showing {filteredEquipment.length} results
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="relative flex-grow md:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search cameras, lenses..."
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-10 pr-4 py-2.5 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button
+              variant="secondary"
+              className="lg:hidden"
+              onClick={() => setIsFilterOpen(true)}
+            >
+              <Filter className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex gap-8">
+          <FilterSidebar
+            filters={filters}
+            setFilters={setFilters}
+            isOpen={isFilterOpen}
+            onClose={() => setIsFilterOpen(false)}
+          />
+
+          <div className="flex-grow">
+            {filteredEquipment.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredEquipment.map((item) => (
+                  <EquipmentCard key={item.id} equipment={item} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-24 bg-slate-900/50 rounded-2xl border border-slate-800 border-dashed">
+                <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-slate-500" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  No equipment found
+                </h3>
+                <p className="text-slate-400 max-w-md mx-auto">
+                  Try adjusting your filters or search terms to find what you're
+                  looking for.
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-6"
+                  onClick={() => {
+                    setFilters({
+                      categories: [],
+                      maxPrice: 1000,
+                      inStockOnly: false,
+                    })
+                    setSearchQuery('')
+                  }}
+                >
+                  Clear All Filters
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```pages/EquipmentDetail.tsx
+import React, { useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import {
+  Star,
+  Shield,
+  Truck,
+  Calendar as CalendarIcon,
+  ArrowLeft,
+} from 'lucide-react'
+import { equipment } from '../data/equipment'
+import { Button } from '../components/ui/Button'
+import { Badge } from '../components/ui/Badge'
+import { EquipmentGallery } from '../components/equipment/EquipmentGallery'
+import { SpecificationsTable } from '../components/equipment/SpecificationsTable'
+import { AvailabilityCalendar } from '../components/equipment/AvailabilityCalendar'
+import { useCart } from '../hooks/useCart'
+export const EquipmentDetail = () => {
+  const { id } = useParams()
+  const item = equipment.find((e) => e.id === id)
+  const { addItem } = useCart()
+  const [activeTab, setActiveTab] = useState<'specs' | 'included' | 'reviews'>(
+    'specs',
+  )
+  if (!item) return <div className="pt-24 text-center">Item not found</div>
+  const handleAddToCart = () => {
+    // Mock dates for now - in real app would come from date picker
+    const start = new Date()
+    const end = new Date()
+    end.setDate(end.getDate() + 3)
+    addItem(item, start, end)
+  }
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4 md:px-6">
+      <div className="container mx-auto">
+        <Link
+          to="/catalog"
+          className="inline-flex items-center text-slate-400 hover:text-white mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Catalog
+        </Link>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+          {/* Left Column - Gallery */}
+          <div>
+            <EquipmentGallery images={item.images} name={item.name} />
+          </div>
+
+          {/* Right Column - Info */}
+          <div>
+            <div className="flex items-center space-x-2 mb-4">
+              <Badge>{item.category}</Badge>
+              {item.stock > 0 ? (
+                <Badge variant="success">In Stock</Badge>
+              ) : (
+                <Badge variant="error">Out of Stock</Badge>
+              )}
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              {item.name}
+            </h1>
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="flex items-center text-amber-500">
+                <Star className="w-5 h-5 fill-current" />
+                <span className="ml-1 font-bold">{item.rating}</span>
+              </div>
+              <span className="text-slate-500">|</span>
+              <span className="text-slate-400">{item.reviewCount} Reviews</span>
+            </div>
+
+            <p className="text-slate-300 leading-relaxed mb-8">
+              {item.description}
+            </p>
+
+            {/* Pricing Card */}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-8">
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-800">
+                  <div className="text-xs text-slate-500 uppercase mb-1">
+                    Daily
+                  </div>
+                  <div className="text-xl font-bold text-white">
+                    ${item.dailyRate}
+                  </div>
+                </div>
+                <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-800">
+                  <div className="text-xs text-slate-500 uppercase mb-1">
+                    Weekly
+                  </div>
+                  <div className="text-xl font-bold text-amber-500">
+                    ${item.weeklyRate}
+                  </div>
+                </div>
+                <div className="text-center p-3 bg-slate-800/50 rounded-lg border border-slate-800">
+                  <div className="text-xs text-slate-500 uppercase mb-1">
+                    Monthly
+                  </div>
+                  <div className="text-xl font-bold text-white">
+                    ${item.monthlyRate}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-sm text-slate-400">
+                  <span>Security Deposit</span>
+                  <span className="text-white">${item.deposit}</span>
+                </div>
+                <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                  Add to Cart
+                </Button>
+              </div>
+            </div>
+
+            {/* Features List */}
+            <div className="grid grid-cols-2 gap-4">
+              {item.features.map((feature, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center text-sm text-slate-300"
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2" />
+                  {feature}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="border-b border-slate-800 mb-8">
+              <div className="flex space-x-8">
+                {['specs', 'included', 'reviews'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab as any)}
+                    className={`
+                      pb-4 text-sm font-medium capitalize transition-colors relative
+                      ${activeTab === tab ? 'text-amber-500' : 'text-slate-400 hover:text-white'}
+                    `}
+                  >
+                    {tab === 'included' ? 'Included Items' : tab}
+                    {activeTab === tab && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {activeTab === 'specs' && (
+              <SpecificationsTable specs={item.specs} />
+            )}
+
+            {activeTab === 'included' && (
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                <ul className="space-y-3">
+                  {item.includedItems.map((inc, idx) => (
+                    <li key={idx} className="flex items-center text-slate-300">
+                      <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center mr-4 text-amber-500 text-sm font-bold">
+                        {idx + 1}
+                      </div>
+                      {inc}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+                <p className="text-slate-400">Reviews coming soon...</p>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <AvailabilityCalendar />
+
+            <div className="mt-8 space-y-4">
+              <div className="flex items-start space-x-4 p-4 bg-slate-900/50 rounded-xl border border-slate-800">
+                <Shield className="w-6 h-6 text-amber-500 shrink-0" />
+                <div>
+                  <h4 className="font-medium text-white text-sm">
+                    Damage Protection
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Optional insurance available at checkout for full coverage.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-4 p-4 bg-slate-900/50 rounded-xl border border-slate-800">
+                <Truck className="w-6 h-6 text-amber-500 shrink-0" />
+                <div>
+                  <h4 className="font-medium text-white text-sm">
+                    Fast Shipping
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Order by 2PM for same-day shipping.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```pages/HomePage.tsx
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, ShieldCheck, Truck, Clock, Star } from 'lucide-react'
+import { Button } from '../components/ui/Button'
+import { EquipmentCard } from '../components/equipment/EquipmentCard'
+import { categories } from '../data/categories'
+import { equipment } from '../data/equipment'
+export const HomePage = () => {
+  const featuredEquipment = equipment.slice(0, 4)
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/40 z-10" />
+          <img
+            src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=2000"
+            alt="Camera Background"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="container mx-auto px-4 md:px-6 relative z-20">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center space-x-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-4 py-1.5 mb-6">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-amber-500 text-sm font-medium">
+                Premium Gear Available Now
+              </span>
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-6">
+              Rent the{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-amber-200">
+                Perfect Shot
+              </span>
+            </h1>
+            <p className="text-xl text-slate-300 mb-8 max-w-2xl leading-relaxed">
+              Access the world's best camera equipment for a fraction of the
+              cost. Professional gear, insured and delivered to your set.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link to="/catalog">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto"
+                  rightIcon={<ArrowRight className="w-5 h-5" />}
+                >
+                  Browse Equipment
+                </Button>
+              </Link>
+              <Link to="/how-it-works">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  How it Works
+                </Button>
+              </Link>
+            </div>
+
+            <div className="mt-12 flex items-center space-x-8 text-slate-400 text-sm font-medium">
+              <div className="flex items-center">
+                <Star className="w-4 h-4 text-amber-500 mr-2" />
+                4.9/5 Rating
+              </div>
+              <div className="flex items-center">
+                <ShieldCheck className="w-4 h-4 text-amber-500 mr-2" />
+                Fully Insured
+              </div>
+              <div className="flex items-center">
+                <Truck className="w-4 h-4 text-amber-500 mr-2" />
+                Fast Delivery
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-24 bg-slate-950">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2">
+                Browse by Category
+              </h2>
+              <p className="text-slate-400">
+                Find exactly what you need for your next production
+              </p>
+            </div>
+            <Link
+              to="/catalog"
+              className="text-amber-500 hover:text-amber-400 font-medium hidden md:block"
+            >
+              View All Categories →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/catalog?category=${cat.id}`}
+                className="group"
+              >
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center hover:border-amber-500/50 transition-all group-hover:-translate-y-1">
+                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-500 group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors">
+                    <cat.icon className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-medium text-white group-hover:text-amber-500 transition-colors">
+                    {cat.name}
+                  </h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Equipment */}
+      <section className="py-24 bg-slate-900/50">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2">
+                Featured Gear
+              </h2>
+              <p className="text-slate-400">
+                Top rated equipment chosen by professionals
+              </p>
+            </div>
+            <Link
+              to="/catalog"
+              className="text-amber-500 hover:text-amber-400 font-medium hidden md:block"
+            >
+              View All Equipment →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredEquipment.map((item) => (
+              <EquipmentCard key={item.id} equipment={item} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Section */}
+      <section className="py-24 bg-slate-950">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+              <div className="w-14 h-14 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500 mb-6">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">
+                Comprehensive Insurance
+              </h3>
+              <p className="text-slate-400 leading-relaxed">
+                Every rental is covered by our comprehensive damage protection
+                plan. Shoot with peace of mind knowing you're protected.
+              </p>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+              <div className="w-14 h-14 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500 mb-6">
+                <Truck className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">
+                Nationwide Delivery
+              </h3>
+              <p className="text-slate-400 leading-relaxed">
+                We ship anywhere in the country with expedited options
+                available. Get your gear exactly when and where you need it.
+              </p>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+              <div className="w-14 h-14 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500 mb-6">
+                <Clock className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">
+                24/7 Expert Support
+              </h3>
+              <p className="text-slate-400 leading-relaxed">
+                Our team of professional photographers and filmmakers is
+                available around the clock to help with any technical issues.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+```
+```pages/LoginPage.tsx
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Camera } from 'lucide-react'
+import { Input } from '../components/ui/Input'
+import { Button } from '../components/ui/Button'
+import { useAuth } from '../hooks/useAuth'
+export const LoginPage = () => {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    login(email)
+    navigate('/dashboard')
+  }
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 bg-slate-950">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-500 rounded-xl mb-4">
+            <Camera className="w-6 h-6 text-slate-950" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Welcome back</h1>
+          <p className="text-slate-400 mt-2">
+            Sign in to your account to manage rentals
+          </p>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Input
+              label="Email Address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="name@example.com"
+            />
+
+            <div>
+              <Input
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+              />
+              <div className="flex justify-end mt-1">
+                <Link
+                  to="#"
+                  className="text-xs text-amber-500 hover:text-amber-400"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" size="lg">
+              Sign In
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center text-sm text-slate-400">
+            Don't have an account?{' '}
+            <Link
+              to="/register"
+              className="text-amber-500 hover:text-amber-400 font-medium"
+            >
+              Sign up
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```pages/RegisterPage.tsx
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Camera } from 'lucide-react'
+import { Input } from '../components/ui/Input'
+import { Button } from '../components/ui/Button'
+import { useAuth } from '../hooks/useAuth'
+export const RegisterPage = () => {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const { register } = useAuth()
+  const navigate = useNavigate()
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    register(name, email)
+    navigate('/dashboard')
+  }
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 bg-slate-950">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-500 rounded-xl mb-4">
+            <Camera className="w-6 h-6 text-slate-950" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Create an account</h1>
+          <p className="text-slate-400 mt-2">
+            Join thousands of professional creators
+          </p>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Input
+              label="Full Name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="John Doe"
+            />
+
+            <Input
+              label="Email Address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="name@example.com"
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+            />
+
+            <Button type="submit" className="w-full" size="lg">
+              Create Account
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center text-sm text-slate-400">
+            Already have an account?{' '}
+            <Link
+              to="/login"
+              className="text-amber-500 hover:text-amber-400 font-medium"
+            >
+              Sign in
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```pages/UserDashboard.tsx
+import React from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { BookingCard } from '../components/booking/BookingCard'
+import { Booking } from '../types'
+import { Button } from '../components/ui/Button'
+export const UserDashboard = () => {
+  const { user, logout } = useAuth()
+  // Mock bookings
+  const bookings: Booking[] = [
+    {
+      id: 'bk_12345678',
+      userId: 'u-123',
+      status: 'active',
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 86400000 * 3).toISOString(),
+      totalAmount: 450,
+      depositAmount: 1500,
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      items: [
+        {
+          id: 'cam-001',
+          name: 'Sony Alpha a7 IV',
+          brand: 'Sony',
+          model: 'ILCE-7M4',
+          category: 'Photography',
+          description: '',
+          specs: {},
+          images: [],
+          dailyRate: 85,
+          weeklyRate: 340,
+          monthlyRate: 1020,
+          deposit: 1500,
+          condition: 'Excellent',
+          rating: 4.8,
+          reviewCount: 124,
+          stock: 5,
+          features: [],
+          includedItems: [],
+          startDate: '',
+          endDate: '',
+          days: 3,
+        },
+      ],
+    },
+  ]
+  return (
+    <div className="min-h-screen pt-24 pb-12 px-4 md:px-6">
+      <div className="container mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+            <p className="text-slate-400">Welcome back, {user?.name}</p>
+          </div>
+          <Button variant="outline" onClick={logout}>
+            Sign Out
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <nav className="space-y-1">
+                {[
+                  'Active Rentals',
+                  'Booking History',
+                  'Profile Settings',
+                  'Payment Methods',
+                ].map((item, i) => (
+                  <button
+                    key={item}
+                    className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors ${i === 0 ? 'bg-amber-500/10 text-amber-500' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="lg:col-span-3 space-y-6">
+            <h2 className="text-xl font-semibold text-white">Active Rentals</h2>
+            {bookings.map((booking) => (
+              <BookingCard key={booking.id} booking={booking} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+```
+```tailwind.config.js
+export default {}
+```
+```types/index.ts
+export type Category =
+  | 'Photography'
+  | 'Video'
+  | 'Lighting'
+  | 'Audio'
+  | 'Drones'
+  | 'Accessories'
+
+export type Condition = 'New' | 'Excellent' | 'Good' | 'Fair'
+
+export type AvailabilityStatus = 'Available' | 'Low Stock' | 'Out of Stock'
+
+export interface Equipment {
+  id: string
+  name: string
+  brand: string
+  model: string
+  category: Category
+  description: string
+  specs: Record<string, string>
+  images: string[]
+  dailyRate: number
+  weeklyRate: number
+  monthlyRate: number
+  deposit: number
+  condition: Condition
+  rating: number
+  reviewCount: number
+  stock: number
+  serialNumber?: string
+  features: string[]
+  includedItems: string[]
+}
+
+export interface CartItem extends Equipment {
+  startDate: string // ISO date string
+  endDate: string // ISO date string
+  days: number
+}
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  role: 'user' | 'admin'
+  avatar?: string
+}
+
+export interface Booking {
+  id: string
+  userId: string
+  items: CartItem[]
+  status: 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled'
+  totalAmount: number
+  depositAmount: number
+  startDate: string
+  endDate: string
+  createdAt: string
+}
+
+export interface Review {
+  id: string
+  userId: string
+  userName: string
+  equipmentId: string
+  rating: number
+  comment: string
+  date: string
+}
+
+```

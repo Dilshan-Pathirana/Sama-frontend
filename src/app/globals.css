@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #020617;
+  /* slate-950 */
+  --bg-secondary: #0f172a;
+  /* slate-900 */
+  --bg-card: #1e293b;
+  /* slate-800 */
+
+  --accent: #f59e0b;
+  /* amber-500 */
+  --accent-hover: #fbbf24;
+  /* amber-400 */
+
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+  /* slate-300 */
+  --text-muted: #94a3b8;
+  /* slate-400 */
+
+  --success: #10b981;
+  /* emerald-500 */
+  --warning: #f59e0b;
+  /* amber-500 */
+  --error: #f43f5e;
+  /* rose-500 */
+}
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-white antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-950;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-800 rounded-full hover:bg-slate-700 transition-colors;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glass {
+    @apply bg-slate-950/80 backdrop-blur-md border-b border-white/5;
+  }
+}

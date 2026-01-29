@@ -1,0 +1,396 @@
+CamRent Pro – Software Requirements Specification (SRS)
+Industry-Grade Camera & Equipment Rental Platform
+1. Introduction
+1.1 Purpose
+
+CamRent Pro is a full-stack rental commerce system for professional photography, video, lighting, audio, and drone equipment. It enables real-time inventory booking, secure payments, digital rental contracts, damage handling, logistics workflows, and business analytics.
+
+1.2 Scope
+
+The system supports:
+
+• Equipment discovery & comparison
+• Detailed product pages (spec-driven like ecommerce)
+• Availability-aware bookings
+• Deposits & rental payments
+• Automated agreements & signatures
+• Pickup/delivery workflows
+• Damage & maintenance lifecycle
+• Financial reporting
+• Scalable SaaS-grade infrastructure
+
+2. User Roles
+Role	Capabilities
+Visitor	Browse equipment, view details, check availability
+Customer	Register, book, pay, manage rentals, review gear
+Admin	Full system control
+Staff	Inspections, logistics, condition updates
+3. Functional Requirements
+3.1 Equipment Catalog & Inventory Management
+
+• CRUD equipment items
+• Asset tagging (serial numbers, QR codes)
+• Category system (Photography, Video, Lighting, Audio, Drones)
+• Gear condition tracking (New, Good, Needs Repair, Retired)
+• Maintenance history per asset
+• Replacement value tracking
+• Stock quantity (multi-unit gear)
+
+3.2 Equipment Detail Pages (E-Commerce Grade)
+
+Each item must have a dedicated product page similar to professional retail sites:
+
+Display:
+
+• High-resolution image gallery
+• Zoom + multiple angles
+• Equipment name & model
+• Price per day/week/month
+• Deposit amount
+• Availability calendar
+• Stock status
+• Ratings & reviews
+
+Specifications Section:
+
+• Sensor type
+• Resolution
+• Video formats
+• Mount type
+• Accessories included
+• Weight & dimensions
+• Compatibility
+
+Additional:
+
+• Recommended accessories
+• Related gear
+• Usage tips
+• Insurance options
+
+3.3 Search, Filters & Discovery
+
+• Keyword search
+• Filter by:
+
+Category
+
+Price range
+
+Availability dates
+
+Brand
+
+Condition
+
+Rating
+
+Sensor/type
+
+• Sort by price, popularity, newest, rating
+
+3.4 Booking System
+
+• Date-based availability engine
+• Real-time conflict prevention
+• Multi-item cart
+• Rental duration pricing logic
+• Deposit auto-calculation
+• Calendar blocking per asset
+• Booking states:
+
+Pending → Paid → Confirmed → Picked Up → Active → Returned → Inspected → Closed
+
+3.5 Payments & Finance
+
+• Rental fee + refundable deposit
+• Online gateway (Stripe + PayHere)
+• Partial refunds
+• Late fee automation
+• Damage invoice generation
+• Payment history
+
+3.6 Digital Contracts
+
+• Auto-generated rental agreement (PDF)
+• Digital signature capture
+• Contract archive per booking
+• Legal timestamping
+
+3.7 Logistics & Operations
+
+• Pickup scheduling
+• Delivery tracking
+• Staff inspection forms
+• Pre-rental condition report
+• Return inspection checklist
+• Damage flagging
+
+3.8 Reviews & Trust Layer
+
+• Customer equipment reviews
+• Star ratings
+• Rental history validation
+• Reputation score
+
+3.9 Notifications
+
+• Email + SMS:
+
+Booking confirmations
+
+Pickup reminders
+
+Return alerts
+
+Payment receipts
+
+Damage invoices
+
+• In-app notifications
+
+4. Non-Functional Requirements
+Performance
+
+• <200ms API response
+• CDN asset delivery
+• Lazy-loaded images
+
+Reliability
+
+• 99.9% uptime
+• Automated backups
+
+Security
+
+• Encrypted payments
+• Secure document storage
+• Role-based access control
+• 2FA
+• GDPR-aligned data handling
+
+Scalability
+
+• Horizontal API scaling
+• Modular microservice-ready backend
+
+5. Enhanced Database Schema
+Users
+
+(id, name, email, password_hash, role, verified, created_at)
+
+Categories
+
+(id, name, description)
+
+Equipment
+
+(id, category_id, serial_number, name, description, condition, replacement_value, daily_rate, weekly_rate, monthly_rate, deposit, status)
+
+Equipment_Images
+
+(id, equipment_id, url)
+
+Equipment_Specifications
+
+(id, equipment_id, key, value)
+
+Bookings
+
+(id, user_id, status, start_date, end_date, total_price, deposit_amount)
+
+Booking_Items
+
+(id, booking_id, equipment_id, rate)
+
+Payments
+
+(id, booking_id, amount, type, status)
+
+Maintenance
+
+(id, equipment_id, description, date)
+
+Damage_Reports
+
+(id, booking_id, equipment_id, cost, notes)
+
+Reviews
+
+(id, user_id, equipment_id, rating, comment)
+
+6. API Structure (REST)
+Auth
+
+POST /auth/register
+POST /auth/login
+POST /auth/verify
+
+Equipment
+
+GET /equipment
+GET /equipment/{id}
+GET /equipment/{id}/availability
+POST /equipment
+PUT /equipment/{id}
+DELETE /equipment/{id}
+
+Booking
+
+POST /bookings
+GET /bookings/{id}
+PUT /bookings/{id}/status
+
+Payments
+
+POST /payments/charge
+POST /payments/refund
+
+Contracts
+
+GET /contracts/{bookingId}
+
+Damage
+
+POST /damage/report
+
+Reviews
+
+POST /reviews
+
+7. Booking Workflow
+
+Browse Gear
+↓
+View Equipment Detail Page
+↓
+Select Rental Dates
+↓
+Availability Check
+↓
+Add to Cart
+↓
+Payment + Deposit
+↓
+Contract Generation
+↓
+Booking Confirmed
+↓
+Pickup/Delivery
+↓
+Return & Inspection
+↓
+Refund or Damage Invoice
+
+8. Admin Dashboard
+Core Panels:
+
+📊 Revenue analytics
+📦 Inventory utilization
+⏰ Overdue rentals
+⚠ Damage alerts
+📈 Popular gear
+💰 Profit reports
+
+Management:
+
+• Equipment
+• Bookings
+• Payments
+• Users
+• Contracts
+• Maintenance
+• CMS pages
+
+9. Monetization Strategy
+
+Primary:
+• Rental margins
+
+Secondary:
+• Insurance add-ons
+• Late fees
+• Damage recovery
+
+Advanced:
+• Subscription memberships
+• Corporate rentals
+• Featured listings
+• Extended warranty packages
+
+10. Roadmap
+MVP (3–4 Months)
+
+✔ Auth
+✔ Equipment listing + detail pages
+✔ Booking system
+✔ Payments
+✔ Admin inventory
+
+Phase 2
+
+✔ Contracts
+✔ Damage system
+✔ Reviews
+✔ Analytics
+
+Phase 3
+
+✔ Mobile app
+✔ Subscriptions
+✔ AI gear recommendations
+✔ Corporate accounts
+
+11. Technology Stack
+
+Frontend:
+Next.js + Tailwind + Radix UI
+
+Backend:
+NestJS (Node.js)
+
+Database:
+PostgreSQL
+
+Auth:
+JWT + OAuth
+
+Payments:
+Stripe + PayHere
+
+Storage:
+AWS S3 / Cloudinary
+
+Infra:
+Docker + AWS/GCP
+
+12. Success Metrics
+
+• Conversion rate
+• Utilization %
+• Damage frequency
+• Retention rate
+• Monthly revenue growth
+
+Additional Advanced Improvements (Recommended)
+🔥 AI Enhancements
+
+• Demand-based dynamic pricing
+• Rental duration recommendations
+• Predictive maintenance alerts
+
+📦 Operations
+
+• Barcode/QR scanning
+• Staff mobile inspection app
+
+🌍 Growth
+
+• Multi-location branches
+• Multi-currency support
+• Tax/VAT automation
+
+🧾 Compliance
+
+• Automated accounting exports
+• Legal document retention
