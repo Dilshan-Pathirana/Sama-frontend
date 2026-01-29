@@ -32,7 +32,6 @@ jobs:
 
       - name: Copy static export to root
         run: |
-          rm -rf ./* .[^.]* || true
           cp -r out/* ./
           cp -r out/.[!.]* ./ || true
 
